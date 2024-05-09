@@ -25,8 +25,8 @@ cy="\033[1;36m"
 
 tg_accounts = {}
 apps = []
-accounts = os.listdir('C://Users/arsen/Order16/pythonProject2/src/tg_accounts')
-parser_files = os.listdir('C://Users/arsen/Order16/pythonProject2/src/parser_account')
+accounts = os.listdir('Путь до папки с аккаунтами')
+parser_files = os.listdir('Путь до папки с аккауном-парсером')
 users = []
 copy_ids = []
 convert_ids = {}
@@ -47,14 +47,14 @@ async def get_ids(Client: Client, new_message: Message):
 
 async def main():
     for account in accounts:
-        data = json.load(open(f'C://Users/arsen/Order16/pythonProject2/src/tg_accounts/{account}/{account}.json'))
-        proxy_data= json.load(open(f'PATH/proxy/{account}.json'))
+        data = json.load(open(f'Путь до папки с аккаунтами/{account}/{account}.json'))
+        proxy_data= json.load(open(f'Путь до папки с прокси/{account}.json'))
         proxy = {'scheme': proxy_data['scheme'],
                  'hostname': proxy_data['host_name'],
                  'port': proxy_data['port'],
                  'username': proxy_data['username'],
                  'password': proxy_data['password']}
-        session = await get_session_string(f'C://Users/arsen/Order16/pythonProject2/src/tg_accounts/{account}/{account}.session')
+        session = await get_session_string(f'Путь до папки с аккаунтами/{account}/{account}.session')
         tg_accounts[account] = [data['app_id'], data['app_hash'], session]
         apps.append(Client(name=account,api_id=tg_accounts[account][0], api_hash=tg_accounts[account][1],session_string=tg_accounts[account][2], proxy=proxy))
     for i in range(len(apps)):
@@ -62,14 +62,14 @@ async def main():
             await apps[i].start()
         except:
             print(f'Аккаунт {apps[i].name} заблокирован')
-    parser_data = json.load(open(f'C://Users/arsen/Order16/pythonProject2/src/parser_account/{parser_files[0]}/{parser_files[0]}.json'))
-    parser_proxy_data = json.load(open(f'PATH/proxy/{parser_files[0]}.json'))
+    parser_data = json.load(open(f'Путь до папки с аккауном-парсером/{parser_files[0]}/{parser_files[0]}.json'))
+    parser_proxy_data = json.load(open(f'Путь до папки с прокси/{parser_files[0]}.json'))
     parser_proxy = {'scheme': parser_proxy_data['scheme'],
                     'hostname': parser_proxy_data['host_name'],
                     'port': parser_proxy_data['port'],
                     'username': parser_proxy_data['username'],
                     'password': parser_proxy_data['password']}
-    parser_session = await get_session_string(f'C://Users/arsen/Order16/pythonProject2/src/parser_account/{parser_files[0]}/{parser_files[0]}.session')
+    parser_session = await get_session_string(f'Путь до папки с аккауном-парсером/{parser_files[0]}/{parser_files[0]}.session')
     parser = Client(name=parser_data['phone'], api_id=parser_data['app_id'], api_hash=parser_data['app_hash'], session_string=parser_session, proxy=parser_proxy)
     await parser.start()
     parser.add_handler(MessageHandler(get_ids))
@@ -83,9 +83,9 @@ async def main():
     for chat in chats:
         try:
             if chat.type == ChatType.GROUP or chat.type == ChatType.SUPERGROUP:
-                if chat.title == 'test_target_chat':
+                if chat.title == 'Название чата в который будут парьситься сообщения':
                     group_for_parsing = chat
-                if chat.title == 'Test_copy_chat_order':
+                if chat.title == 'Название чата для копирования сообщений': # Этот чат нужен только для реализации парсинга, вы можете выйти из него, как только добавите в него все аккаунты
                     group_for_copy = chat
                 else:
                     groups.append(chat)
