@@ -10,7 +10,7 @@ import json
 import csv
 from typing import AsyncGenerator
 from pyrogram.handlers import MessageHandler
-
+import time
 
 
 re="\033[1;31m"
@@ -86,7 +86,6 @@ async def main():
             media_group_id = message.media_group_id
             reply_message_id = message.reply_to_message_id
             original_messages_ids.append(message.id)
-            message = message.reply_to_message if message.reply_to_message is not None else message
             try:
                 if media_group_id not in copied_media_groups_ids:
                     await parser.copy_media_group(chat_id=group_for_copy.id, from_chat_id=target_group.id,
@@ -95,6 +94,7 @@ async def main():
                 await parser.copy_message(chat_id=group_for_copy.id, from_chat_id=target_group.id,message_id=message.id)
             messages_data: AsyncGenerator[Message, None] = parser.get_chat_history(chat_id=group_for_copy.id)
             copy_messages = [copy_message async for copy_message in messages_data if not copy_message.service]
+            time.sleep(0.5)
             try:
                 if media_group_id not in copied_media_groups_ids:
                     if reply_message_id:
@@ -117,7 +117,7 @@ async def main():
                     await user_bot.copy_message(chat_id=group_for_parsing.id, from_chat_id=group_for_copy.id,
                                                 message_id=copy_messages[0].id,
                                                 )
-
+            time.sleep(0.5)
             try:
                 await parser.delete_messages(chat_id=group_for_copy.id, message_ids=copy_messages[0].id)
             except:
@@ -127,5 +127,3 @@ async def main():
 if __name__ == '__main__':
 
     asyncio.get_event_loop().run_until_complete(main())
-
-
