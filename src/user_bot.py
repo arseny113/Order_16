@@ -3,14 +3,16 @@ from pyrogram.raw.types import InputPeerChat, InputPeerUser
 from pyrogram import Client
 from pyrogram.types import Message
 from pyrogram.enums import ChatType
-from topyrogram import get_session_string
 import os
 import sys
 import json
 import csv
+from TGConvertor.manager import SessionManager
 from typing import AsyncGenerator
 from pyrogram.handlers import MessageHandler
 import time
+from pyrogram.enums import ChatAction, MessageMediaType
+
 
 
 re="\033[1;31m"
@@ -28,8 +30,18 @@ copy_ids = []
 convert_ids = {}
 original_messages_ids = []
 
+
+
+
+async def get_session_string(path):
+    session = await SessionManager.from_telethon_file(path)
+    res = session.to_pyrogram_string()
+    return res
+
+
 async def get_ids(Client: Client, new_message: Message):
     convert_ids[f"{original_messages_ids[-1]}"] = new_message.id
+
 
 async def main():
     for account in accounts:
@@ -41,7 +53,7 @@ async def main():
         try:
             await apps[i].start()
         except:
-            print('This account is blocked')
+            print(f'Аккаунт {apps[i].name} заблокирован')
     parser_data = json.load(open(f'C://Users/arsen/Order16/pythonProject2/src/parser_account/{parser_files[0]}/{parser_files[0]}.json'))
     parser_session = await get_session_string(f'C://Users/arsen/Order16/pythonProject2/src/parser_account/{parser_files[0]}/{parser_files[0]}.session')
     parser = Client(name=parser_data['phone'], api_id=parser_data['app_id'], api_hash=parser_data['app_hash'], session_string=parser_session)
@@ -65,16 +77,28 @@ async def main():
                     groups.append(chat)
         except:
             continue
-    print(gr + '[+] Choose a group to parse messages :' + re)
+    print(gr + '[+] Выберите группу для парсинга :' + re)
     i = 0
     for g in groups:
         print(gr + '[' + cy + str(i) + gr + ']' + cy + ' - ' + g.title)
         i += 1
     print('')
-    g_index = input(gr + "[+] Enter a Number : " + re)
+    g_index = input(gr + "[+] Введите номер : " + re)
     target_group = groups[int(g_index)]
     messages_data: AsyncGenerator[Message, None] = parser.get_chat_history(chat_id=target_group.id)
-    messages = list(reversed([message async for message in messages_data]))
+    messages = []
+    while True:
+        start_id = int(input(gr + "[+] Введите id начального сообщения: " + re))
+        finish_id = int(input(gr + "[+] Введите id конечного сообщения: " + re))
+        async for message in messages_data:
+            if start_id <= message.id <= finish_id:
+                messages.append(message)
+        if len(messages) != 0:
+            break
+        else:
+            print(gr + "Ввод некорректен, поробуйте еще раз" + re)
+    messages = list(reversed(messages))
+    black_ids = [int(black_id.strip()) for black_id in input(gr + 'Введите список id сообщений, которые парсить не надо, через запятую:\n' + re).split(',')]
     list_of_users = list(set([message.from_user.id for message in messages]))
     copied_media_groups_ids = []
     if len(list_of_users) > len(accounts):
@@ -82,7 +106,7 @@ async def main():
     for message in messages:
         user = message.from_user.id
         user_bot = apps[list_of_users.index(user)]
-        if not message.service:
+        if not message.service and message.id not in black_ids:
             media_group_id = message.media_group_id
             reply_message_id = message.reply_to_message_id
             original_messages_ids.append(message.id)
@@ -94,7 +118,28 @@ async def main():
                 await parser.copy_message(chat_id=group_for_copy.id, from_chat_id=target_group.id,message_id=message.id)
             messages_data: AsyncGenerator[Message, None] = parser.get_chat_history(chat_id=group_for_copy.id)
             copy_messages = [copy_message async for copy_message in messages_data if not copy_message.service]
-            time.sleep(0.5)
+            if copy_messages[0].text or copy_messages[0].media:
+                if copy_messages[0].media:
+                    media = copy_messages[0].media
+                    if media == MessageMediaType.PHOTO:
+                        await user_bot.send_chat_action(chat_id=group_for_parsing.id, action=ChatAction.UPLOAD_PHOTO)
+                        time.sleep(2)
+                    if media == MessageMediaType.VIDEO:
+                        await user_bot.send_chat_action(chat_id=group_for_parsing.id, action=ChatAction.UPLOAD_VIDEO)
+                        time.sleep(4)
+                    if media == MessageMediaType.VIDEO_NOTE:
+                        await user_bot.send_chat_action(chat_id=group_for_parsing.id, action=ChatAction.RECORD_VIDEO_NOTE)
+                        time.sleep(message.video_note.duration)
+                    if media == MessageMediaType.VOICE:
+                        await user_bot.send_chat_action(chat_id=group_for_parsing.id, action=ChatAction.RECORD_AUDIO)
+                        time.sleep(message.voice.duration)
+                    if media == MessageMediaType.STICKER:
+                        await user_bot.send_chat_action(chat_id=group_for_parsing.id, action=ChatAction.CHOOSE_STICKER)
+                        time.sleep(1)
+                else:
+                    await user_bot.send_chat_action(chat_id=group_for_parsing.id, action=ChatAction.TYPING)
+                    time.sleep(len(message.text) / 4.4)
+
             try:
                 if media_group_id not in copied_media_groups_ids:
                     if reply_message_id:
@@ -117,7 +162,7 @@ async def main():
                     await user_bot.copy_message(chat_id=group_for_parsing.id, from_chat_id=group_for_copy.id,
                                                 message_id=copy_messages[0].id,
                                                 )
-            time.sleep(0.5)
+            time.sleep(0.6)
             try:
                 await parser.delete_messages(chat_id=group_for_copy.id, message_ids=copy_messages[0].id)
             except:
@@ -125,5 +170,4 @@ async def main():
 
 
 if __name__ == '__main__':
-
     asyncio.get_event_loop().run_until_complete(main())
