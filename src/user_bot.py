@@ -17,8 +17,6 @@ import json
 
 import time
 
-
-
 re="\033[1;31m"
 gr="\033[1;32m"
 cy="\033[1;36m"
@@ -27,9 +25,9 @@ cy="\033[1;36m"
 
 tg_accounts = {}
 apps = []
-path_accounts = 'Путь до папки с аккаунтами'
-path_parser_account = 'Путь до папки с аккаунтом-парсером'
-path_proxy = 'Путь до папки с прокси'
+path_accounts = 'src/tg_accounts'
+path_parser_account = 'src/parser_account'
+path_proxy = 'src/proxy'
 name_target_group = 'Название целевого чата'
 name_copy_group = 'Название чата для копирования сообщений' # Этот чат нужен только для реализации парсинга, вы можете выйти из него, как только добавите в него все аккаунты
 accounts = os.listdir(path_accounts)
@@ -57,8 +55,8 @@ async def main():
         data = json.load(open(f'{path_accounts}/{account}/{account}.json'))
         proxy_data= json.load(open(f'{path_proxy}/{account}.json'))
         proxy = {'scheme': proxy_data['scheme'],
-                 'hostname': proxy_data['host_name'],
-                 'port': proxy_data['port'],
+                 'hostname': proxy_data['hostname'],
+                 'port': f"{proxy_data['pord']}",
                  'username': proxy_data['username'],
                  'password': proxy_data['password']}
         session = await get_session_string(f'{path_accounts}/{account}/{account}.session')

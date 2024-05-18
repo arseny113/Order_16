@@ -5,7 +5,7 @@ import asyncio
 
 from TGConvertor.manager import SessionManager
 from TGConvertor import TeleSession
-
+import os
 
 async def converter(path):
     # Load the client from telethon.session file
@@ -19,4 +19,4 @@ async def converter(path):
 
     # Save the session to a folder named "tdata"
     tdesk.SaveTData(f"{path[:-20]}/tdata")
-
+    
