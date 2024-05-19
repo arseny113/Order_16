@@ -56,32 +56,33 @@ async def main():
         proxy_data= json.load(open(f'{path_proxy}/{account}.json'))
         proxy = {'scheme': proxy_data['scheme'],
                  'hostname': proxy_data['hostname'],
-                 'port': f"{proxy_data['pord']}",
+                 'port': proxy_data['pord'],
                  'username': proxy_data['username'],
                  'password': proxy_data['password']}
         session = await get_session_string(f'{path_accounts}/{account}/{account}.session')
         tg_accounts[account] = [data['app_id'], data['app_hash'], session]
         apps.append(Client(name=account,api_id=tg_accounts[account][0], api_hash=tg_accounts[account][1],session_string=tg_accounts[account][2], proxy=proxy))
         try:
-            tdata = os.listdir(f'{path_accounts}/{account}')
+            tdata = os.listdir(f'{path_accounts}/{account}/tdata')
         except:
             await converter(f'{path_accounts}/{account}/{account}.session')
     for i in range(len(apps)):
         try:
             await apps[i].start()
+            print(apps[i].name, 'запущен')
         except:
             print(f'Аккаунт {apps[i].name} заблокирован')
     parser_data = json.load(open(f'{path_parser_account}/{parser_files[0]}/{parser_files[0]}.json'))
     parser_proxy_data = json.load(open(f'{path_proxy}/{parser_files[0]}.json'))
     parser_proxy = {'scheme': parser_proxy_data['scheme'],
-                    'hostname': parser_proxy_data['host_name'],
-                    'port': parser_proxy_data['port'],
+                    'hostname': parser_proxy_data['hostname'],
+                    'port': parser_proxy_data['pord'],
                     'username': parser_proxy_data['username'],
                     'password': parser_proxy_data['password']}
     parser_session = await get_session_string(f'{path_parser_account}/{parser_files[0]}/{parser_files[0]}.session')
     parser = Client(name=parser_data['phone'], api_id=parser_data['app_id'], api_hash=parser_data['app_hash'], session_string=parser_session, proxy=parser_proxy)
     try:
-        os.listdir(f'{path_parser_account}/{parser_files}')
+        os.listdir(f'{path_parser_account}/{parser_files}/tdata')
     except:
         await converter(f'{path_parser_account}/{parser_files[0]}/{parser_files[0]}.session')
     await parser.start()
@@ -129,7 +130,7 @@ async def main():
     list_of_users = list(set([message.from_user.id for message in messages]))
     copied_media_groups_ids = []
     if len(list_of_users) > len(accounts):
-        print(re + 'У вас мало аккаунтов для того чтобы парсть эту группу, добавьте аккаунтов и попробуйте снова')
+        print(re + 'У вас мало аккаунтов для того чтобы парсить эту группу, добавьте аккаунтов и попробуйте снова')
     for message in messages:
         user = message.from_user.id
         user_bot = apps[list_of_users.index(user)]
