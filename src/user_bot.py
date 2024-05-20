@@ -25,11 +25,11 @@ cy="\033[1;36m"
 
 tg_accounts = {}
 apps = []
-path_accounts = 'src/tg_accounts'
-path_parser_account = 'src/parser_account'
-path_proxy = 'src/proxy'
-name_target_group = 'Название целевого чата'
-name_copy_group = 'Название чата для копирования сообщений' # Этот чат нужен только для реализации парсинга, вы можете выйти из него, как только добавите в него все аккаунты
+path_accounts = 'tg_accounts'
+path_parser_account = 'parser_account'
+path_proxy = 'proxy'
+name_target_group = 'test_target_chat'
+name_copy_group = 'Test_copy_chat_order' # Этот чат нужен только для реализации парсинга, вы можете выйти из него, как только добавите в него все аккаунты
 accounts = os.listdir(path_accounts)
 parser_files = os.listdir(path_parser_account)
 users = []
@@ -56,30 +56,29 @@ async def main():
         proxy_data= json.load(open(f'{path_proxy}/{account}.json'))
         proxy = {'scheme': proxy_data['scheme'],
                  'hostname': proxy_data['hostname'],
-                 'port': f"{proxy_data['pord']}",
+                 'port': f"{int(proxy_data['pord'])}",
                  'username': proxy_data['username'],
                  'password': proxy_data['password']}
         session = await get_session_string(f'{path_accounts}/{account}/{account}.session')
         tg_accounts[account] = [data['app_id'], data['app_hash'], session]
         apps.append(Client(name=account,api_id=tg_accounts[account][0], api_hash=tg_accounts[account][1],session_string=tg_accounts[account][2], proxy=proxy))
         try:
-            tdata = os.listdir(f'{path_accounts}/{account}')
+            tdata = os.listdir(f'{path_accounts}/{account}/tdata')
         except:
             await converter(f'{path_accounts}/{account}/{account}.session')
     for i in range(len(apps)):
-        try:
-            await apps[i].start()
-        except:
-            print(f'Аккаунт {apps[i].name} заблокирован')
+        await apps[i].start()
+
+            #print(f'Аккаунт {apps[i].name} заблокирован')
     parser_data = json.load(open(f'{path_parser_account}/{parser_files[0]}/{parser_files[0]}.json'))
-    parser_proxy_data = json.load(open(f'{path_proxy}/{parser_files[0]}.json'))
+    """parser_proxy_data = json.load(open(f'{path_proxy}/{parser_files[0]}.json'))
     parser_proxy = {'scheme': parser_proxy_data['scheme'],
                     'hostname': parser_proxy_data['host_name'],
-                    'port': parser_proxy_data['port'],
+                    'port': parser_proxy_data['pord'],
                     'username': parser_proxy_data['username'],
-                    'password': parser_proxy_data['password']}
+                    'password': parser_proxy_data['password']}"""
     parser_session = await get_session_string(f'{path_parser_account}/{parser_files[0]}/{parser_files[0]}.session')
-    parser = Client(name=parser_data['phone'], api_id=parser_data['app_id'], api_hash=parser_data['app_hash'], session_string=parser_session, proxy=parser_proxy)
+    parser = Client(name=parser_data['phone'], api_id=parser_data['app_id'], api_hash=parser_data['app_hash'], session_string=parser_session, ) #proxy=parser_proxy
     try:
         os.listdir(f'{path_parser_account}/{parser_files}')
     except:
